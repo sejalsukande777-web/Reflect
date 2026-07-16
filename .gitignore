@@ -1,0 +1,26 @@
+# Ignore Node modules
+Backend/node_modules/
+
+# Ignore environment variables
+Backend/.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build folders
+dist/
+build/
+
+# Coverage reports
+coverage/
+
+# Cache
+.cache/

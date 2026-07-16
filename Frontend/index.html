@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reflect — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sage:        #4a7c59;
+      --sage-dark:   #355c42;
+      --sage-mid:    #a8c5b0;
+      --sage-light:  #e8f0eb;
+      --sage-xlight: #f2f7f4;
+      --amber:       #c97c2c;
+      --amber-light: #fdf3e3;
+      --ink:         #1e2822;
+      --ink-mid:     #4a5550;
+      --ink-soft:    #8a9690;
+      --paper:       #f7f5f0;
+      --cream:       #fdfcfa;
+      --border:      rgba(30,40,34,0.1);
+      --border-mid:  rgba(30,40,34,0.18);
+      --shadow:      0 2px 24px rgba(30,40,34,0.08);
+      --shadow-lg:   0 8px 48px rgba(30,40,34,0.13);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    /* ── Layout ─────────────────────────────────── */
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ── Left panel — decorative ─────────────────── */
+    .left-panel {
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 52px 56px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Organic background blobs */
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: var(--sage-dark);
+      opacity: 0.35;
+      top: -120px; left: -100px;
+    }
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: var(--sage);
+      opacity: 0.2;
+      bottom: 40px; right: -80px;
+    }
+
+    .left-logo {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .logo-mark {
+      width: 38px; height: 38px;
+      background: var(--sage);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark svg { width: 20px; height: 20px; }
+    .logo-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: white;
+      letter-spacing: -0.3px;
+    }
+
+    .left-hero {
+      position: relative; z-index: 1;
+    }
+    .left-hero-quote {
+      font-family: 'DM Serif Display', serif;
+      font-size: 36px;
+      line-height: 1.25;
+      color: white;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+    .left-hero-quote em {
+      color: var(--sage-mid);
+      font-style: italic;
+    }
+    .left-hero-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.7;
+      max-width: 320px;
+    }
+
+    .left-stats {
+      position: relative; z-index: 1;
+      display: flex; gap: 32px;
+    }
+    .stat-item {}
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--sage-mid);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Right panel — form ──────────────────────── */
+    .right-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 52px 48px;
+      background: var(--cream);
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 380px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: 30px;
+      color: var(--ink);
+      margin-bottom: 6px;
+      letter-spacing: -0.4px;
+    }
+    .form-subheading {
+      font-size: 14px;
+      color: var(--ink-soft);
+      margin-bottom: 36px;
+      line-height: 1.6;
+    }
+
+    /* ── Form fields ─────────────────────────────── */
+    .field {
+      margin-bottom: 20px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-mid);
+      margin-bottom: 7px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+    .field input {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      border: 1.5px solid var(--border-mid);
+      border-radius: 10px;
+      background: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input::placeholder { color: var(--ink-soft); }
+    .field input:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(74,124,89,0.12);
+    }
+    .field input.error {
+      border-color: #c4686a;
+      box-shadow: 0 0 0 3px rgba(196,104,106,0.1);
+    }
+
+    /* Password wrapper with toggle */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 48px; }
+    .pw-toggle {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--ink-soft);
+      padding: 4px;
+      display: flex; align-items: center;
+    }
+    .pw-toggle:hover { color: var(--ink-mid); }
+
+    /* Forgot password */
+    .field-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 7px;
+    }
+    .link-subtle {
+      font-size: 12px;
+      color: var(--sage);
+      text-decoration: none;
+    }
+    .link-subtle:hover { text-decoration: underline; }
+
+    /* Error message */
+    .error-msg {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #fce8e8;
+      border: 1px solid rgba(196,104,106,0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #9b3d3f;
+      margin-bottom: 20px;
+      animation: fadeUp 0.25s ease;
+    }
+    .error-msg.visible { display: flex; }
+
+    /* Submit button */
+    .btn-primary {
+      width: 100%;
+      height: 50px;
+      background: var(--sage);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      letter-spacing: 0.2px;
+      margin-top: 8px;
+    }
+    .btn-primary:hover {
+      background: var(--sage-dark);
+      box-shadow: 0 4px 16px rgba(74,124,89,0.3);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled {
+      background: var(--sage-mid);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading .spinner { display: block; }
+    .loading .btn-text { display: none; }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 28px 0 24px;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text { font-size: 12px; color: var(--ink-soft); }
+
+    /* Register link */
+    .register-prompt {
+      text-align: center;
+      font-size: 14px;
+      color: var(--ink-soft);
+    }
+    .register-prompt a {
+      color: var(--sage);
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .register-prompt a:hover { text-decoration: underline; }
+
+    /* Success toast */
+    .toast {
+      display: none;
+      position: fixed;
+      bottom: 32px; right: 32px;
+      background: var(--ink);
+      color: white;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      gap: 10px;
+      align-items: center;
+      box-shadow: var(--shadow-lg);
+      animation: slideIn 0.3s ease;
+      z-index: 999;
+    }
+    .toast.visible { display: flex; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .toast-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--sage-mid);
+      flex-shrink: 0;
+    }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 768px) {
+      .page { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { padding: 40px 24px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <!-- ── Left decorative panel ─────────────────── -->
+    <div class="left-panel">
+      <div class="left-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 3C10 3 5 6 5 11C5 13.76 7.24 16 10 16C12.76 16 15 13.76 15 11C15 6 10 3 10 3Z" fill="white" opacity="0.9"/>
+            <path d="M10 16V18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M7 17H13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="logo-name">reflect</span>
+      </div>
+
+      <div class="left-hero">
+        <div class="left-hero-quote">
+          Your journal.<br/>Your growth.<br/><em>Your story.</em>
+        </div>
+        <p class="left-hero-sub">
+          A quiet space to write, reflect, and watch yourself grow — one day at a time.
+        </p>
+      </div>
+
+      <div class="left-stats">
+        <div class="stat-item">
+          <div class="stat-num">365</div>
+          <div class="stat-label">Days to fill</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Growth possible</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">1</div>
+          <div class="stat-label">Entry at a time</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Right form panel ───────────────────────── -->
+    <div class="right-panel">
+      <div class="form-container">
+
+        <h1 class="form-heading">Welcome back</h1>
+        <p class="form-subheading">Sign in to continue your reflection journey.</p>
+
+        <!-- Error message -->
+        <div class="error-msg" id="errorMsg">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7" stroke="#c4686a" stroke-width="1.4"/>
+            <line x1="8" y1="5" x2="8" y2="9" stroke="#c4686a" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="8" cy="11.5" r="0.8" fill="#c4686a"/>
+          </svg>
+          <span id="errorText">Wrong email or password.</span>
+        </div>
+
+        <form id="loginForm" novalidate>
+
+          <div class="field">
+            <label for="email">Email address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="pw-wrap">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              />
+              <button type="button" class="pw-toggle" id="pwToggle" aria-label="Toggle password">
+                <svg id="eyeIcon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M1 9C1 9 4 3 9 3C14 3 17 9 17 9C17 9 14 15 9 15C4 15 1 9 1 9Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                  <circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.4"/>
+                </svg>
+              </button>
+            </div>
+            <div class="field-footer">
+              <a href="#" class="link-subtle">Forgot password?</a>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="loginBtn">
+            <div class="spinner"></div>
+            <span class="btn-text">Sign in</span>
+          </button>
+
+        </form>
+
+        <div class="divider">
+          <div class="divider-line"></div>
+          <span class="divider-text">new here?</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <p class="register-prompt">
+          Don't have an account?
+          <a href="register.html">Create one — it's free</a>
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Success toast -->
+  <div class="toast" id="toast">
+    <div class="toast-dot"></div>
+    <span>Signed in! Redirecting…</span>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+
+    // ── Redirect if already logged in ──────────────
+    if (localStorage.getItem('token')) {
+      window.location.href = 'dashboard.html';
+    }
+
+    // ── Password toggle ────────────────────────────
+    const pwToggle = document.getElementById('pwToggle');
+    const pwInput  = document.getElementById('password');
+    const eyeIcon  = document.getElementById('eyeIcon');
+
+    pwToggle.addEventListener('click', () => {
+      const isHidden = pwInput.type === 'password';
+      pwInput.type = isHidden ? 'text' : 'password';
+      eyeIcon.innerHTML = isHidden
+        ? `<path d="M2 2L16 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+           <path d="M7.5 3.5C8 3.18 8.5 3 9 3C14 3 17 9 17 9C16.4 10.1 15.6 11.2 14.7 12.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+           <path d="M5.3 5.3C3.5 6.5 2 9 2 9C2 9 5 15 9 15C10.4 15 11.7 14.4 12.8 13.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>`
+        : `<path d="M1 9C1 9 4 3 9 3C14 3 17 9 17 9C17 9 14 15 9 15C4 15 1 9 1 9Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+           <circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.4"/>`;
+    });
+
+    // ── Form submission ────────────────────────────
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn  = document.getElementById('loginBtn');
+    const errorMsg  = document.getElementById('errorMsg');
+    const errorText = document.getElementById('errorText');
+    const toast     = document.getElementById('toast');
+
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorMsg.classList.add('visible');
+      document.getElementById('email').classList.add('error');
+      document.getElementById('password').classList.add('error');
+    }
+
+    function clearError() {
+      errorMsg.classList.remove('visible');
+      document.getElementById('email').classList.remove('error');
+      document.getElementById('password').classList.remove('error');
+    }
+
+    function setLoading(on) {
+      loginBtn.disabled = on;
+      loginBtn.classList.toggle('loading', on);
+    }
+
+    // Clear errors when user types
+    ['email', 'password'].forEach(id => {
+      document.getElementById(id).addEventListener('input', clearError);
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Basic client-side validation
+      if (!email) { showError('Please enter your email address.'); return; }
+      if (!password) { showError('Please enter your password.'); return; }
+      if (!/\S+@\S+\.\S+/.test(email)) { showError('Please enter a valid email address.'); return; }
+
+      setLoading(true);
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.message || 'Wrong email or password. Please try again.');
+          setLoading(false);
+          return;
+        }
+
+        // Save token and user info
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify({ _id: data._id, name: data.name, email: data.email }));
+
+        // Show success toast then redirect
+        toast.classList.add('visible');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1200);
+
+      } catch (err) {
+        showError('Could not connect to server. Please try again.');
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reflect — Streaks</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Literata:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── TOKENS ─────────────────────────────────── */
+    :root {
+      --cream:       #f7f3ec;
+      --cream-dark:  #ede7d9;
+      --cream-deep:  #e2d9c8;
+      --paper:       #faf7f2;
+      --sage:        #7a9e87;
+      --sage-light:  #a8c4b0;
+      --sage-dim:    rgba(122,158,135,.13);
+      --sage-border: rgba(122,158,135,.28);
+      --amber:       #c8812a;
+      --amber-light: #e8a84a;
+      --amber-dim:   rgba(200,129,42,.12);
+      --amber-border:rgba(200,129,42,.3);
+      --rust:        #b85c38;
+      --rust-dim:    rgba(184,92,56,.11);
+      --ink:         #2e2a22;
+      --ink-mid:     #5a5346;
+      --ink-soft:    #8c8275;
+      --ink-ghost:   #b8b0a2;
+      --border:      #ddd5c4;
+      --border-soft: #e8e0d2;
+
+      --font-head: 'DM Serif Display', serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-read: 'Literata', serif;
+      --radius:    16px;
+      --radius-sm: 10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── PAPER TEXTURE ──────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: .6;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 50% at 5%  10%,  rgba(122,158,135,.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 95% 80%,  rgba(200,129,42,.06)  0%, transparent 55%),
+        radial-gradient(ellipse 40% 60% at 50% 50%,  rgba(247,243,236,.4)  0%, transparent 70%);
+    }
+
+    /* ── NAV ────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 44px;
+      background: rgba(250,247,242,.92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--font-head);
+      font-size: 1.5rem;
+      color: var(--amber);
+      text-decoration: none;
+      font-style: italic;
+      letter-spacing: .3px;
+    }
+
+    .nav-links { display: flex; gap: 4px; list-style: none; }
+
+    .nav-links a {
+      font-size: .84rem; font-weight: 500;
+      color: var(--ink-soft);
+      text-decoration: none;
+      padding: 7px 16px; border-radius: 50px;
+      transition: all .2s;
+    }
+    .nav-links a:hover { color: var(--ink); background: var(--cream-dark); }
+    .nav-links a.active { color: var(--amber); background: var(--amber-dim); font-weight: 600; }
+
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+
+    .streak-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-border);
+      color: var(--amber);
+      font-size: .8rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 50px;
+    }
+
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--sage-light), var(--amber-light));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .82rem; color: var(--paper);
+      cursor: pointer; border: 2px solid var(--border);
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+    }
+
+    /* ── MAIN ───────────────────────────────────── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 52px 24px 100px;
+    }
+
+    /* ── PAGE HEADER ────────────────────────────── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .page-eyebrow {
+      display: inline-block;
+      font-family: var(--font-read);
+      font-style: italic;
+      font-size: .85rem;
+      color: var(--sage);
+      letter-spacing: .5px;
+      margin-bottom: 10px;
+    }
+
+    .page-title {
+      font-family: var(--font-head);
+      font-size: 3rem;
+      color: var(--ink);
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .page-title em { color: var(--amber); font-style: italic; }
+
+    .page-sub {
+      font-family: var(--font-read);
+      font-size: .95rem;
+      color: var(--ink-soft);
+      font-style: italic;
+      line-height: 1.65;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* ── FLAME HERO ─────────────────────────────── */
+    .flame-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 52px;
+    }
+
+    .flame-wrap {
+      position: relative;
+      width: 140px; height: 140px;
+      margin-bottom: 20px;
+    }
+
+    /* SVG flame rings */
+    .flame-ring {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      animation: flicker 3s ease-in-out infinite;
+    }
+    .flame-ring:nth-child(1) {
+      background: radial-gradient(circle, rgba(232,168,74,.18) 0%, transparent 70%);
+      animation-delay: 0s;
+      transform: scale(1.4);
+    }
+    .flame-ring:nth-child(2) {
+      background: radial-gradient(circle, rgba(200,129,42,.22) 0%, transparent 65%);
+      animation-delay: .6s;
+      transform: scale(1.15);
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: .7; transform: scale(var(--s, 1.4)); }
+      50%       { opacity: 1;  transform: scale(calc(var(--s, 1.4) * 1.06)); }
+    }
+    .flame-ring:nth-child(2) { --s: 1.15; }
+
+    .flame-circle {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #fdf6ec, #f5e8cc);
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      box-shadow:
+        0 8px 32px rgba(200,129,42,.18),
+        0 2px 8px  rgba(200,129,42,.12),
+        inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .flame-emoji {
+      font-size: 3rem;
+      line-height: 1;
+      animation: flameBob 2.4s ease-in-out infinite;
+    }
+    @keyframes flameBob {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%       { transform: translateY(-4px) scale(1.06); }
+    }
+
+    .flame-num {
+      font-family: var(--font-head);
+      font-size: 1.5rem;
+      color: var(--amber);
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .flame-label {
+      font-size: .62rem;
+      color: var(--ink-soft);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .streak-message {
+      font-family: var(--font-head);
+      font-size: 1.5rem;
+      color: var(--ink);
+      text-align: center;
+    }
+
+    .streak-sub {
+      font-family: var(--font-read);
+      font-style: italic;
+      font-size: .88rem;
+      color: var(--ink-soft);
+      margin-top: 5px;
+      text-align: center;
+    }
+
+    /* ── STAT ROW ───────────────────────────────── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    @media (max-width: 560px) {
+      .stat-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    .stat-tile {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform .25s, box-shadow .25s;
+    }
+
+    .stat-tile::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.6) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .stat-tile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(46,42,34,.08);
+    }
+
+    .stat-tile .icon {
+      font-size: 1.5rem; margin-bottom: 8px; display: block;
+    }
+
+    .stat-tile .val {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-tile.amber .val { color: var(--amber); }
+    .stat-tile.sage  .val { color: var(--sage); }
+    .stat-tile.rust  .val { color: var(--rust); }
+
+    .stat-tile .lbl {
+      font-size: .75rem;
+      color: var(--ink-soft);
+      font-weight: 500;
+    }
+
+    /* ── SECTION DIVIDER ────────────────────────── */
+    .section-head {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 18px; margin-top: 40px;
+    }
+
+    .section-head h2 {
+      font-family: var(--font-head);
+      font-size: 1.35rem;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .section-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* ── CALENDAR ───────────────────────────────── */
+    .calendar-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 16px rgba(46,42,34,.05);
+    }
+
+    .cal-nav {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .cal-nav h3 {
+      font-family: var(--font-head);
+      font-size: 1.15rem; color: var(--ink);
+    }
+
+    .cal-arrow {
+      background: none; border: 1px solid var(--border);
+      color: var(--ink-mid); font-size: .9rem;
+      width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all .18s;
+    }
+    .cal-arrow:hover { background: var(--cream-dark); border-color: var(--border); }
+
+    .cal-weekdays {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      text-align: center; margin-bottom: 10px;
+    }
+
+    .cal-weekday {
+      font-size: .7rem; font-weight: 600;
+      color: var(--ink-ghost);
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 4px 0;
+    }
+
+    .cal-days {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      font-size: .82rem; font-weight: 500;
+      color: var(--ink-soft);
+      cursor: default;
+      position: relative;
+      transition: transform .15s;
+    }
+
+    .cal-day.empty { pointer-events: none; }
+
+    .cal-day.has-entry {
+      background: var(--sage-dim);
+      color: var(--sage);
+      font-weight: 600;
+    }
+
+    .cal-day.has-entry::after {
+      content: '';
+      position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--sage);
+    }
+
+    .cal-day.streak-day {
+      background: var(--amber-dim);
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .cal-day.streak-day::after {
+      background: var(--amber);
+    }
+
+    .cal-day.today {
+      background: var(--amber);
+      color: var(--paper);
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(200,129,42,.35);
+    }
+
+    .cal-day.today::after { display: none; }
+
+    .cal-day.future { color: var(--border); }
+    .cal-day:not(.empty):not(.future):hover { transform: scale(1.15); }
+
+    .cal-legend {
+      display: flex; gap: 18px; margin-top: 18px; flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: .75rem; color: var(--ink-soft);
+    }
+
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+
+    /* ── STREAK HISTORY ─────────────────────────── */
+    .history-list {
+      display: flex; flex-direction: column; gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .history-item {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .history-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 16px rgba(46,42,34,.07);
+    }
+
+    .history-item.best {
+      border-color: var(--amber-border);
+      background: linear-gradient(to right, var(--amber-dim), var(--cream));
+    }
+
+    .hi-rank {
+      font-family: var(--font-head);
+      font-size: 1.3rem; color: var(--ink-ghost);
+      width: 28px; text-align: center; flex-shrink: 0;
+    }
+
+    .history-item.best .hi-rank { color: var(--amber); }
+
+    .hi-flame { font-size: 1.3rem; flex-shrink: 0; }
+
+    .hi-info { flex: 1; }
+
+    .hi-days {
+      font-family: var(--font-head);
+      font-size: 1.1rem; color: var(--ink);
+    }
+
+    .hi-dates {
+      font-size: .75rem; color: var(--ink-soft);
+      font-family: var(--font-read);
+      font-style: italic; margin-top: 2px;
+    }
+
+    .hi-badge {
+      font-size: .72rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 50px;
+      white-space: nowrap;
+    }
+    .badge-best   { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-border); }
+    .badge-recent { background: var(--sage-dim);  color: var(--sage);  border: 1px solid var(--sage-border); }
+    .badge-past   { background: var(--cream-dark); color: var(--ink-ghost); border: 1px solid var(--border); }
+
+    /* ── MILESTONE SHELF ────────────────────────── */
+    .milestones-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .milestones-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .milestone-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      text-align: center;
+      position: relative; overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .milestone-card.earned {
+      border-color: var(--amber-border);
+    }
+
+    .milestone-card.earned::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--amber-dim), transparent 60%);
+      pointer-events: none;
+    }
+
+    .milestone-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(46,42,34,.08); }
+
+    .ms-badge {
+      font-size: 2rem; margin-bottom: 8px; display: block;
+      filter: grayscale(1); opacity: .35;
+      transition: all .3s;
+    }
+
+    .milestone-card.earned .ms-badge {
+      filter: grayscale(0); opacity: 1;
+    }
+
+    .ms-name {
+      font-family: var(--font-head);
+      font-size: .88rem; color: var(--ink-mid);
+      margin-bottom: 3px;
+    }
+
+    .milestone-card.earned .ms-name { color: var(--ink); }
+
+    .ms-req {
+      font-size: .7rem; color: var(--ink-ghost);
+    }
+
+    .milestone-card.earned .ms-req { color: var(--sage); font-weight: 500; }
+
+    .ms-checkmark {
+      position: absolute; top: 10px; right: 10px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--sage);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .65rem; color: white;
+      opacity: 0; transform: scale(0);
+      transition: all .3s;
+    }
+
+    .milestone-card.earned .ms-checkmark { opacity: 1; transform: scale(1); }
+
+    /* ── MOTIVATIONAL QUOTE ─────────────────────── */
+    .quote-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--sage);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .quote-mark {
+      font-family: var(--font-head);
+      font-size: 5rem;
+      color: var(--sage-dim);
+      line-height: 0;
+      position: absolute;
+      top: 32px; left: 16px;
+      pointer-events: none;
+    }
+
+    .quote-text {
+      font-family: var(--font-read);
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--ink-mid);
+      line-height: 1.75;
+      padding-left: 12px;
+      margin-bottom: 12px;
+    }
+
+    .quote-author {
+      font-size: .78rem;
+      color: var(--ink-ghost);
+      font-weight: 500;
+      text-align: right;
+    }
+
+    /* ── DAILY CHECK-IN CTA ─────────────────────── */
+    .cta-card {
+      background: linear-gradient(135deg, #f5ede0, #eae5d8);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--radius);
+      padding: 32px;
+      display: flex; align-items: center;
+      gap: 24px; flex-wrap: wrap;
+      box-shadow: 0 4px 24px rgba(200,129,42,.1);
+    }
+
+    .cta-left { flex: 1; min-width: 200px; }
+
+    .cta-title {
+      font-family: var(--font-head);
+      font-size: 1.3rem; color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .cta-sub {
+      font-family: var(--font-read);
+      font-style: italic;
+      font-size: .88rem; color: var(--ink-soft);
+      line-height: 1.6;
+    }
+
+    .btn-journal {
+      font-family: var(--font-body);
+      font-size: .88rem; font-weight: 600;
+      padding: 13px 28px; border-radius: 50px;
+      border: none; cursor: pointer;
+      background: var(--amber);
+      color: var(--paper);
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all .22s;
+      box-shadow: 0 4px 16px rgba(200,129,42,.3);
+      white-space: nowrap;
+    }
+
+    .btn-journal:hover {
+      background: var(--amber-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(200,129,42,.38);
+    }
+
+    /* ── PROGRESS BAR ───────────────────────────── */
+    .next-milestone-wrap {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px 22px;
+      margin-bottom: 20px;
+    }
+
+    .nm-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 10px;
+    }
+
+    .nm-label {
+      font-family: var(--font-read);
+      font-style: italic; font-size: .88rem;
+      color: var(--ink-mid);
+    }
+
+    .nm-pct {
+      font-size: .78rem; font-weight: 600;
+      color: var(--amber);
+    }
+
+    .progress-track {
+      height: 8px; border-radius: 8px;
+      background: var(--cream-deep);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%; border-radius: 8px;
+      background: linear-gradient(to right, var(--sage-light), var(--amber-light));
+      transition: width 1s ease;
+    }
+
+    .nm-footer {
+      margin-top: 8px; font-size: .72rem;
+      color: var(--ink-ghost);
+    }
+
+    /* ── ANIMATIONS ─────────────────────────────── */
+    .fade-up {
+      opacity: 0; transform: translateY(18px);
+      animation: fadeUp .5s ease forwards;
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    .fade-up:nth-child(1)  { animation-delay: .04s; }
+    .fade-up:nth-child(2)  { animation-delay: .10s; }
+    .fade-up:nth-child(3)  { animation-delay: .16s; }
+    .fade-up:nth-child(4)  { animation-delay: .22s; }
+    .fade-up:nth-child(5)  { animation-delay: .28s; }
+    .fade-up:nth-child(6)  { animation-delay: .34s; }
+    .fade-up:nth-child(7)  { animation-delay: .40s; }
+    .fade-up:nth-child(8)  { animation-delay: .46s; }
+    .fade-up:nth-child(9)  { animation-delay: .52s; }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAV ─────────────────────────────────── -->
+  <nav>
+    <a href="index.html" class="nav-logo">Reflect</a>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="journal.html">Journal</a></li>
+      <li><a href="insights.html">Insights</a></li>
+      <li><a href="streak.html" class="active">Streaks</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="streak-pill">🔥 <span id="streakCount">7</span> day streak</div>
+      <div class="avatar" id="userAvatar">A</div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ─────────────────────────────────── -->
+  <main>
+
+    <!-- Page Header -->
+    <div class="page-header fade-up">
+      <span class="page-eyebrow">Your discipline, made visible</span>
+      <h1 class="page-title">Streak <em>Tracker</em></h1>
+      <p class="page-sub">Every day you show up is a thread in the fabric of who you're becoming.</p>
+    </div>
+
+    <!-- Flame Hero -->
+    <div class="flame-hero fade-up">
+      <div class="flame-wrap">
+        <div class="flame-ring"></div>
+        <div class="flame-ring"></div>
+        <div class="flame-circle">
+          <span class="flame-emoji">🔥</span>
+          <span class="flame-num" id="heroStreak">7</span>
+          <span class="flame-label">days</span>
+        </div>
+      </div>
+      <div class="streak-message" id="streakMsg">One week strong.</div>
+      <p class="streak-sub" id="streakSub">You've written every day since <span id="streakSince">—</span></p>
+    </div>
+
+    <!-- Stat Row -->
+    <div class="stat-row fade-up">
+      <div class="stat-tile amber">
+        <span class="icon">🏆</span>
+        <div class="val" id="statBest">12</div>
+        <div class="lbl">Best streak ever</div>
+      </div>
+      <div class="stat-tile sage">
+        <span class="icon">📓</span>
+        <div class="val" id="statTotal">24</div>
+        <div class="lbl">Total entries</div>
+      </div>
+      <div class="stat-tile rust">
+        <span class="icon">📅</span>
+        <div class="val" id="statRate">80%</div>
+        <div class="lbl">30-day completion</div>
+      </div>
+    </div>
+
+    <!-- Next Milestone Progress Bar -->
+    <div class="next-milestone-wrap fade-up">
+      <div class="nm-header">
+        <span class="nm-label">Next milestone → <strong id="nextMsName">14-day streak 🌿</strong></span>
+        <span class="nm-pct" id="nextMsPct">50%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:50%"></div>
+      </div>
+      <div class="nm-footer" id="nmFooter">7 more days to go — you've got this.</div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="section-head fade-up">
+      <h2>Monthly View</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="calendar-card fade-up">
+      <div class="cal-nav">
+        <button class="cal-arrow" onclick="prevMonth()">‹</button>
+        <h3 id="calTitle"></h3>
+        <button class="cal-arrow" onclick="nextMonth()">›</button>
+      </div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Su</div>
+        <div class="cal-weekday">Mo</div>
+        <div class="cal-weekday">Tu</div>
+        <div class="cal-weekday">We</div>
+        <div class="cal-weekday">Th</div>
+        <div class="cal-weekday">Fr</div>
+        <div class="cal-weekday">Sa</div>
+      </div>
+      <div class="cal-days" id="calDays"></div>
+      <div class="cal-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--amber)"></div>
+          Today
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--amber-light);opacity:.6"></div>
+          Current streak
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--sage-light)"></div>
+          Journal entry
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--border)"></div>
+          No entry
+        </div>
+      </div>
+    </div>
+
+    <!-- Streak History -->
+    <div class="section-head fade-up">
+      <h2>Streak History</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="history-list fade-up" id="historyList"></div>
+
+    <!-- Milestones -->
+    <div class="section-head fade-up">
+      <h2>Milestones</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="milestones-grid fade-up" id="milestonesGrid"></div>
+
+    <!-- Quote -->
+    <div class="quote-card fade-up">
+      <span class="quote-mark">"</span>
+      <p class="quote-text" id="quoteText">We are what we repeatedly do. Excellence, then, is not an act, but a habit.</p>
+      <p class="quote-author" id="quoteAuthor">— Aristotle</p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-card fade-up">
+      <div class="cta-left">
+        <div class="cta-title" id="ctaTitle">Keep the flame alive 🔥</div>
+        <p class="cta-sub" id="ctaSub">Today's entry is waiting for you. Even a few lines keeps the streak going — consistency over perfection.</p>
+      </div>
+      <a href="journal.html" class="btn-journal">✍️ Write today's entry</a>
+    </div>
+
+  </main>
+
+
+  <!-- ── SCRIPT ─────────────────────────────────── -->
+  <script src="streak.js"></script>
+</body>
+</html>
