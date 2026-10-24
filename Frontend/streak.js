@@ -3,7 +3,7 @@
    Connects to backend API and populates streak.html
 ───────────────────────────────────────────────────────── */
 
-const BASE_URL = 'https://reflect-backend.onrender.com/api';
+const BASE_URL = "https://reflect-m5zh.onrender.com/api";
 
 // ── AUTH CHECK ───────────────────────────────────────────
 const token    = localStorage.getItem("token");
