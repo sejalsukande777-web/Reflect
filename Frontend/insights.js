@@ -8,7 +8,7 @@
      GET /api/entries        — all entries for timeline chart
    ============================================================ */
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://reflect-backend.onrender.com/api';
 
 /* ── Auth guard ──────────────────────────────────────────── */
 const token = localStorage.getItem('token');

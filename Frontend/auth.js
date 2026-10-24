@@ -4,7 +4,7 @@
    API: POST /api/auth/login  |  POST /api/auth/register
    ============================================================ */
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://reflect-backend.onrender.com/api';
 
 /* ── Redirect if already logged in ──────────────────────── */
 if (localStorage.getItem('token')) {

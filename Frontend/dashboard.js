@@ -9,7 +9,7 @@
      GET /api/entries/:date  — today's entry (for mood banner)
    ============================================================ */
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://reflect-backend.onrender.com/api';
 
 /* ── Auth guard ──────────────────────────────────────────── */
 const token = localStorage.getItem('token');
